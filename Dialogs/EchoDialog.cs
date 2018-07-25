@@ -29,7 +29,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                     PromptDialog.Confirm(
                         context,
                         AfterHelloAsync,
-                        "Hello. How Are you Today?",
+                        "Hello. Are you well Today?",
                         "What?!",
                         promptStyle: PromptStyle.Auto);
                     break;
@@ -41,6 +41,28 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                         "Are you sure you want to reset the count?",
                         "Didn't get that!",
                         promptStyle: PromptStyle.Auto);
+                    break;
+
+                case "Roll D20":
+                    Random random = new Random();
+                    int score = random.Next(1, 20);
+                    //this.count++;
+                    String preparedResult = "";
+                    if (score == 1)
+                    {
+                        preparedResult = $"You rolled {score}. Critical Failure!";
+                    }
+                    else if (score == 20)
+                    {
+                        preparedResult = $"You rolled {score}. Critical Success!";
+                    }
+                    else
+                    {
+                        preparedResult = $"You rolled {score}";
+                    }
+
+                    await context.PostAsync(preparedResult);
+                    context.Wait(MessageReceivedAsync);
                     break;
 
                 default:
