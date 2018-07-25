@@ -11,6 +11,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
     [Serializable]
     public class EchoDialog : IDialog<object>
     {
+        protected int lastRoll = -1;
         protected int count = 1;
         protected bool helloSaid = false;
 
@@ -23,7 +24,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
         {
             var message = await argument;
 
-            switch (message.Text)
+            switch (message.Text.ToLower())
             {
                 case "hello":
                     PromptDialog.Confirm(
@@ -43,24 +44,30 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                         promptStyle: PromptStyle.Auto);
                     break;
 
-                case "Roll D20":
+                case "roll d20":
                     Random random = new Random();
-                    int score = random.Next(1, 20);
+                    this.lastRoll = random.Next(1, 20);
                     //this.count++;
                     String preparedResult = "";
-                    if (score == 1)
+                    if (this.lastRoll == 1)
                     {
-                        preparedResult = $"You rolled {score}. Critical Failure!";
+                        preparedResult = $"You rolled {this.lastRoll}. Critical Failure!";
                     }
-                    else if (score == 20)
+                    else if (this.lastRoll == 20)
                     {
-                        preparedResult = $"You rolled {score}. Critical Success!";
+                        preparedResult = $"You rolled {this.lastRoll}. Critical Success!";
                     }
                     else
                     {
-                        preparedResult = $"You rolled {score}";
+                        preparedResult = $"You rolled {this.lastRoll}.";
                     }
 
+                    await context.PostAsync(preparedResult);
+                    context.Wait(MessageReceivedAsync);
+                    break;
+
+                case "what was my last roll?":
+                    preparedResult = $"You rolled {this.lastRoll} in last roll.";
                     await context.PostAsync(preparedResult);
                     context.Wait(MessageReceivedAsync);
                     break;
