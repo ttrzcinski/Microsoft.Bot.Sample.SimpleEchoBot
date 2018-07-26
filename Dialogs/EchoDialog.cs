@@ -24,6 +24,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
         {
             var message = await argument;
 
+            String preparedResult = null;
             switch (message.Text.ToLower())
             {
                 case "hello":
@@ -48,7 +49,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                     Random random = new Random();
                     this.lastRoll = random.Next(1, 20);
                     //this.count++;
-                    String preparedResult = "";
+                    preparedResult = "";
                     if (this.lastRoll == 1)
                     {
                         preparedResult = $"You rolled {this.lastRoll}. Critical Failure!";
