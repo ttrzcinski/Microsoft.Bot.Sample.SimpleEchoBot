@@ -21,13 +21,28 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
             var message = await argument;
 
             String preparedResult;
-            //switch (message.Text.ToLower())
-            //{
-            //    default:
-            preparedResult = $"Lycopersicon.";
+
+            preparedResult = answerTo(message.Text);
             await context.PostAsync(preparedResult);
             context.Wait(MessageReceivedAsync);
-            //}
+        }
+
+        public String answerTo(string question)
+        {
+            if (String.IsNullOrEmpty(question))
+            {
+                return "Come on..";
+            }
+
+            string answer = $"Lycopersicon.";
+            switch (question.ToLower())
+            {
+                case "what is the answer to life, the universe and everything?":
+                    answer = "42, read the book..";
+                    break;
+            }
+
+            return answer;
         }
     }
 }
