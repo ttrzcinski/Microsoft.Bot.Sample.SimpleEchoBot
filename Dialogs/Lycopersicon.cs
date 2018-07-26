@@ -24,9 +24,10 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
             //switch (message.Text.ToLower())
             //{
             //    default:
-                    preparedResult = $"Lycopersicon.";
-                    await context.PostAsync(preparedResult);
-                    context.Wait(MessageReceivedAsync);
+            preparedResult = $"Lycopersicon.";
+            await context.PostAsync(preparedResult);
+            context.Wait(MessageReceivedAsync);
             //}
         }
+    }
 }
