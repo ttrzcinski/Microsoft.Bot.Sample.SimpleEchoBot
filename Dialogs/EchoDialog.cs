@@ -1,19 +1,19 @@
 using System;
 using System.Threading.Tasks;
-
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Builder.Dialogs;
 using System.Net.Http;
-
+using System.Diagnostics.Contracts;
+using System.Security.Cryptography;
 
 namespace Microsoft.Bot.Sample.SimpleEchoBot
 {
     [Serializable]
     public class EchoDialog : IDialog<object>
     {
-        protected int lastRoll = -1;
-        protected int count = 1;
-        protected bool helloSaid = false;
+        protected uint _lastRoll = UInt32.MaxValue;
+        protected uint count = 1;
+        protected bool helloSaid;
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -22,10 +22,12 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
 
         public async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
         {
+            Contract.Ensures(Contract.Result<Task>() != null);
             var message = await argument;
+            var messageLower = message.Text.ToLower();
 
             String preparedResult = null;
-            switch (message.Text.ToLower())
+            switch (messageLower)
             {
                 case "hello":
                     PromptDialog.Confirm(
@@ -46,21 +48,44 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                     break;
 
                 case "roll d20":
+                    // Use of weak ranom numbers provider
                     Random random = new Random();
-                    this.lastRoll = random.Next(1, 20);
-                    //this.count++;
+                    _lastRoll = (uint)random.Next(1, 20);
                     preparedResult = "";
-                    if (this.lastRoll == 1)
+                    if (_lastRoll == 1)
                     {
-                        preparedResult = $"You rolled {this.lastRoll}. Critical Failure!";
+                        preparedResult = $"You rolled {_lastRoll}. Critical Failure!";
                     }
-                    else if (this.lastRoll == 20)
+                    else if (_lastRoll == 20)
                     {
-                        preparedResult = $"You rolled {this.lastRoll}. Critical Success!";
+                        preparedResult = $"You rolled {_lastRoll}. Critical Success!";
                     }
                     else
                     {
-                        preparedResult = $"You rolled {this.lastRoll}.";
+                        preparedResult = $"You rolled {_lastRoll}.";
+                    }
+
+                    await context.PostAsync(preparedResult);
+                    context.Wait(MessageReceivedAsync);
+                    break;
+
+                case "roll d100":
+                    // Use some secure random numbers provider
+                    RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+                    var byteArray = new byte[4];
+                    _lastRoll = BitConverter.ToUInt32(byteArray, 0);
+                    preparedResult = "";
+                    if (_lastRoll == 1)
+                    {
+                        preparedResult = $"You rolled {_lastRoll}. Critical Failure!";
+                    }
+                    else if (_lastRoll == 20)
+                    {
+                        preparedResult = $"You rolled {_lastRoll}. Critical Success!";
+                    }
+                    else
+                    {
+                        preparedResult = $"You rolled {_lastRoll}.";
                     }
 
                     await context.PostAsync(preparedResult);
@@ -68,7 +93,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
                     break;
 
                 case "what was my last roll?":
-                    preparedResult = $"You rolled {this.lastRoll} in last roll.";
+                    preparedResult = _lastRoll != UInt32.MaxValue ? $"You rolled {_lastRoll} in last roll." : $"You didn't made a single roll yet.";
                     await context.PostAsync(preparedResult);
                     context.Wait(MessageReceivedAsync);
                     break;
@@ -85,7 +110,7 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
             var confirm = await argument;
             if (confirm)
             {
-                this.count = 1;
+                count = 1;
                 await context.PostAsync("Reset count.");
             }
             else
@@ -97,11 +122,11 @@ namespace Microsoft.Bot.Sample.SimpleEchoBot
 
         public async Task AfterHelloAsync(IDialogContext context, IAwaitable<bool> argument)
         {
-            this.helloSaid = false;
+            helloSaid = false;
             var confirm = await argument;
             if (confirm)
             {
-                this.helloSaid = true;
+                helloSaid = true;
                 await context.PostAsync("That's nice..");
             }
             else
